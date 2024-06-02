@@ -35,7 +35,7 @@ async function run() {
 
         const store_id = process.env.StoreID
         const store_passwd = process.env.StorePassword
-        const is_live = false //true for live, false for sandbox
+        // const is_live = false //true for live, false for sandbox
 
         await client.connect();
 
