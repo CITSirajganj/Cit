@@ -1,30 +1,26 @@
 const express = require('express');
-const app = express();
 const cors = require('cors');
-const { ObjectId } = require('mongodb'); // Import ObjectId
-
-
+const { ObjectId } = require('mongodb');
 require('dotenv').config();
 
+const app = express();
 const port = process.env.PORT || 5000;
 
-// middleware
-app.use(cors());
+// Middleware
+app.use(cors({
+    origin: ['http://localhost:5173', 'https://cit-25152.netlify.app'], // Replace with your frontend's origin
+    methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true,
+
+}));
 app.use(express.json());
-
-// //////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////
-
-
-
 
 const { MongoClient, ServerApiVersion } = require('mongodb');
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.wfbcpzp.mongodb.net/?retryWrites=true&w=majority`;
 
-
 async function run() {
     try {
-
         const client = new MongoClient(uri, {
             serverApi: {
                 version: ServerApiVersion.v1,
@@ -33,26 +29,14 @@ async function run() {
             },
         });
 
-        const store_id = process.env.StoreID
-        const store_passwd = process.env.StorePassword
-        // const is_live = false //true for live, false for sandbox
-
         await client.connect();
 
-        //////////////////////////////////////////////////////////
-        //////////////All Mongodb Collections start here//////////
-        /////////////////////////////////////////////////////////
         const noticeCollection = client.db('CIT').collection('noticeCollection');
-
         const employeeCollection = client.db('CIT').collection('employeeCollection');
-
         const classLectureCollection = client.db('CIT').collection('classLectureCollection');
-
         const breakingNewsCollection = client.db('CIT').collection('breakingNewsCollection');
 
-
-
-        // add breaking news to DB
+        // Routes
         app.post('/addBreakingNews', async (req, res) => {
             try {
                 const formData = req.body;
@@ -64,7 +48,6 @@ async function run() {
             }
         });
 
-        // Getting all breaking news from DB
         app.get('/allBreakingNews', async (req, res) => {
             try {
                 const breakingNews = await breakingNewsCollection.find().toArray();
@@ -75,11 +58,10 @@ async function run() {
             }
         });
 
-        // delete breaking news by id
         app.delete('/deleteBreakingNews/:id', async (req, res) => {
             try {
                 const { id } = req.params;
-                const objectId = new ObjectId(id); // Construct ObjectId with 'new'
+                const objectId = new ObjectId(id);
                 const result = await breakingNewsCollection.deleteOne({ _id: objectId });
                 if (result.deletedCount === 1) {
                     res.status(200).json({ message: 'Breaking News deleted successfully' });
@@ -92,7 +74,6 @@ async function run() {
             }
         });
 
-        // Route to handle form data of class Lecture adding
         app.post('/addClassLecture', async (req, res) => {
             try {
                 const formData = req.body;
@@ -104,7 +85,6 @@ async function run() {
             }
         });
 
-        // Getting all class lectures from DB
         app.get('/allClassLectures', async (req, res) => {
             try {
                 const classLectures = await classLectureCollection.find().toArray();
@@ -114,12 +94,11 @@ async function run() {
                 res.status(500).json({ message: 'Error fetching class lectures', error: error.message });
             }
         });
-        
-        // delete class lecture by id 
+
         app.delete('/deleteClassLecture/:id', async (req, res) => {
             try {
                 const { id } = req.params;
-                const objectId = new ObjectId(id); // Construct ObjectId with 'new'
+                const objectId = new ObjectId(id);
                 const result = await classLectureCollection.deleteOne({ _id: objectId });
                 if (result.deletedCount === 1) {
                     res.status(200).json({ message: 'Class Lecture deleted successfully' });
@@ -131,9 +110,7 @@ async function run() {
                 res.status(500).json({ message: 'An error occurred while deleting class Lecture' });
             }
         });
-        
-        
-        // Route to handle form data of notice adding
+
         app.post('/addNotice', async (req, res) => {
             try {
                 const formData = req.body;
@@ -144,7 +121,7 @@ async function run() {
                 res.status(500).json({ message: 'An error occurred', error: error.message });
             }
         });
-        // Getting all notices from DB sorted by date in descending order
+
         app.get('/allNotices', async (req, res) => {
             try {
                 const notices = await noticeCollection.find().sort({ timestamp: -1 }).toArray();
@@ -155,11 +132,10 @@ async function run() {
             }
         });
 
-        // Getting a single notice by ID and dlt
         app.delete('/deleteNotice/:id', async (req, res) => {
             try {
                 const { id } = req.params;
-                const objectId = new ObjectId(id); // Construct ObjectId with 'new'
+                const objectId = new ObjectId(id);
                 const result = await noticeCollection.deleteOne({ _id: objectId });
                 if (result.deletedCount === 1) {
                     res.status(200).json({ message: 'Notice deleted successfully' });
@@ -172,7 +148,6 @@ async function run() {
             }
         });
 
-        // add employee to DB 
         app.post('/addEmployee', async (req, res) => {
             try {
                 const formData = req.body;
@@ -184,7 +159,6 @@ async function run() {
             }
         });
 
-        // getting all employees from DB
         app.get('/allEmployees', async (req, res) => {
             try {
                 const employees = await employeeCollection.find().toArray();
@@ -195,11 +169,6 @@ async function run() {
             }
         });
 
-
-
-
-        ////////////////////////////////////////////////////////////////////////////////////
-        //////////////////////////////////////////////////////////////////////////////////////////
         await client.db("admin").command({ ping: 1 });
         console.log("Pinged your deployment. You successfully connected to MongoDB!");
     } catch (error) {
@@ -207,19 +176,12 @@ async function run() {
     }
 }
 
-
-
-
 run().catch(console.dir);
 
 app.get('/', (req, res) => {
-    res.send('CM Academy is on');
+    res.send('CIT is on');
 });
 
 app.listen(port, () => {
-    console.log(`CM Academy is on port ${port}`);
+    console.log(`CIT is on port ${port}`);
 });
-
-
-
-
